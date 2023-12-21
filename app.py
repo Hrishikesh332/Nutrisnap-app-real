@@ -1,14 +1,24 @@
 import streamlit as st
 from PIL import Image
 import requests
+import google.generativeai as genai
+import google.ai.generativelanguage as glm
+import io
+import cv2
+import json
 
 
-API_KEY = st.secrets["API_KEY"]
-
-API_URL = "https://api-inference.huggingface.co/models/rajistics/finetuned-indian-food"
-headers = {"Authorization": API_KEY}
+API_URL = st.secrets["Hf_model"]
+headers = {"Authorization": st.secrets["Auth_Hf_Key"]}
 
 
+
+def ai_art(payload):
+	response = requests.post(API_URL, headers=headers, json=payload)
+	return response.content
+
+
+genai.configure(api_key=st.secrets["Google_API_Key"])
 
 page_element="""
 <style>
@@ -50,17 +60,20 @@ with col2:
 st.markdown("---")
 st.markdown("Upload a photo of your food intake and get rewarded with NFTs!")
 
+def get_response(vision_message, model="gemini-pro"):
+   
+    model = genai.GenerativeModel(model)
+    res = model.generate_content(vision_message, stream=True,
+                                safety_settings={'HARASSMENT':'block_none'})
+    return res
 
-def query(uploaded_file):
-   data = uploaded_file.read()
-   response = requests.post(API_URL, headers=headers, data=data)
-   return response.json()
+    
+# # def query(uploaded_file):
+#    data = uploaded_file.read()
+#    response = requests.post(API_URL, headers=headers, data=data)
+#    return response.json()
 
 
-
-with st.form(key='my_form'):
-   uploaded_file = st.file_uploader("Choose an image...", type=['jpg', 'png'])
-   submit = st.form_submit_button("Submit")
 
 # with st.form(key='my_form2'):
 #    uploaded_file = st.camera_input("Take a picture")
@@ -68,12 +81,44 @@ with st.form(key='my_form'):
 
 
 
-if submit and uploaded_file is not None:
-   image = Image.open(uploaded_file)
-   st.image(image, caption='Uploaded Image')
-   output = query(uploaded_file)
-   st.write(output)
+# uploaded_file = st.file_uploader("Choose an image...", type=['jpg', 'png'])
 
+uploaded_file = st.file_uploader(
+            "upload image",
+            label_visibility="collapsed",
+            accept_multiple_files=False,
+            type=["png", "jpg"],
+        )
+
+if uploaded_file:
+            image_bytes = uploaded_file.read()
+
+
+if uploaded_file is not None:
+   img = cv2.imread(uploaded_file.name)
+   image=Image.open(uploaded_file)
+   st.image(image, caption='Uploaded Image')
+   if "image_bytes" in globals():
+      chat_message = "From the provided food item, Please do identify the food and also do classify whether it's healthy or unhealthy. Provide the response in the json format. For Example - {name:'Paneer Mutter', status:'Unhealthy'}"
+      vision_message = [chat_message, Image.open(io.BytesIO(image_bytes))]
+      result = get_response(vision_message, model="gemini-pro-vision")
+      # st.write(result)
+   res_text = ""
+   for chunk in result:
+        res_text += chunk.text
+        st.markdown(res_text)
+
+
+
+   # data = json.loads(res_text)
+   # name = data["name"]
+   prompt = f"Amazing photo of the Indian Food - Panner Mutter, intricate detail, 8k resolution, studio light, michelin art kitchen style --v 5. 0, 4k --ar 1:2 --quality 2"
+   image_bytes1 = ai_art({
+	"inputs": prompt,
+   })
+
+   art = Image.open(io.BytesIO(image_bytes1))
+   st.image(art)
 
 
     # healthiness = predict_healthiness(image)
