@@ -4,7 +4,6 @@ import requests
 import google.generativeai as genai
 import google.ai.generativelanguage as glm
 import io
-import cv2
 import json
 import streamlit.components.v1 as components
 from streamlit_option_menu import option_menu
@@ -148,7 +147,7 @@ if (selected=="Main"):
 
 
    if uploaded_file is not None:
-      img = cv2.imread(uploaded_file.name)
+  
       image=Image.open(uploaded_file)
       st.image(image, caption='Uploaded Image')
       if "image_bytes" in globals():
