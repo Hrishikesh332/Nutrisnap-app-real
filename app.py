@@ -7,6 +7,7 @@ import io
 import json
 import streamlit.components.v1 as components
 from streamlit_option_menu import option_menu
+import webbrowser
 
 # components.html(open("index.html").read(), height=600)
 
@@ -178,11 +179,13 @@ if (selected=="Main"):
 
       art = Image.open(io.BytesIO(image_bytes1))
       st.image(art)
-      placeholder = st.empty()
+      # placeholder = st.empty()
 
       # Add a button to the placeholder
-      placeholder.button("Prepare One Claim Now!")
-
+      # placeholder.button("Prepare One Claim Now!")
+      if st.button('Prepare One Claim Now!'):
+      # Open the URL in a new browser tab
+         webbrowser.open('http://localhost:3000', new=2)
 
       # healthiness = predict_healthiness(image)
 
