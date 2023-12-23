@@ -96,7 +96,7 @@ if (selected=="Main"):
 
 
 
-   genai.configure(api_key=st.secrets["Google_API_Key"])
+   genai.configure(api_key= st.secrets["Google_API_Key"])
 
    col1, col2 = st.columns(2)
 
@@ -150,9 +150,9 @@ if (selected=="Main"):
    if uploaded_file is not None:
       img = cv2.imread(uploaded_file.name)
       image=Image.open(uploaded_file)
-      st.image(image, caption='Uploaded Image')
+      st.image(image)
       if "image_bytes" in globals():
-         chat_message = "From the provided food item, Please do identify the food and also do classify whether it's healthy or unhealthy. Provide the response in the json format. For Example - {name:'Paneer Mutter', status:'Unhealthy'}"
+         chat_message = "From the provided food item, Please do identify the food and also do classify whether it's healthy or unhealthy. Also one more XP_Points as the parameter in between (1-10), the more healthier food would assign more XP and more unhealthier woulld be lesser value Provide the response in the json format. For Example - {name:'Paneer Mutter', status:'Unhealthy'}"
          vision_message = [chat_message, Image.open(io.BytesIO(image_bytes))]
          result = get_response(vision_message, model="gemini-pro-vision")
          # st.write(result)
@@ -160,6 +160,13 @@ if (selected=="Main"):
       for chunk in result:
          res_text += chunk.text
          st.markdown(res_text)
+         # st.write(type(res_text))
+         res_text1=str(res_text)
+         food=json.loads(res_text)
+         n=str(food["name"])
+         s=str(food["status"])
+         # st.write(n)
+         # st.write(s)
 
 
 
@@ -172,6 +179,10 @@ if (selected=="Main"):
 
       art = Image.open(io.BytesIO(image_bytes1))
       st.image(art)
+      placeholder = st.empty()
+
+      # Add a button to the placeholder
+      placeholder.button("Prepare One Claim Now!")
 
 
       # healthiness = predict_healthiness(image)
